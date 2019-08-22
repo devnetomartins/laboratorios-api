@@ -116,6 +116,35 @@ public class ExameResource {
 		
 	}
 	
+	@DeleteMapping("/exames")
+	public HashMap<String, String> deleteExame(@RequestBody Exame exame) {
+		
+		HashMap<String, String> map = new HashMap<>();
+		
+		boolean state = Stream.of(exame.getId())
+        .anyMatch(Objects::isNull);
+		
+		if(!state) {
+			//Valida se o id existe
+			Optional<Exame> value = exameRepository.findById(exame.getId());
+			if( value.isPresent()) {
+				exame = value.get();
+				exame.setStatus(false);
+				exameRepository.save(exame);
+				map.put("message", "Desativado com sucesso");
+			}else {
+				map.put("message", "ID não encontrado");
+			}
+			
+		}else {
+			//Nao atualiza
+		    map.put("message", "É preciso informar o id para desativar o exame");
+		}
+		
+		return map;
+		
+	}
+	
 	@PutMapping("/exames")
 	public ResponseEntity updateExame(@RequestBody @Valid Exame exame) {
 		

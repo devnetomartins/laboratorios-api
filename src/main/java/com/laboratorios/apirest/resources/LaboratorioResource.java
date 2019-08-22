@@ -78,9 +78,6 @@ public class LaboratorioResource {
         .anyMatch(Objects::isNull);
 		
 		if(!state) {
-			//Nao atualiza
-		    map.put("message", "É preciso informar o id para desativar o laboratorio");
-		}else {
 			//Valida se o id existe
 			Optional<Laboratorio> value = laboratorioRepository.findById(laboratorio.getId());
 			if( value.isPresent()) {
@@ -92,10 +89,13 @@ public class LaboratorioResource {
 				map.put("message", "ID não encontrado");
 			}
 			
+		}else {
+			//Nao atualiza
+		    map.put("message", "É preciso informar o id para desativar o laboratorio");
+			
 		}
 		
 		return map;
-		
 		
 	}
 	
