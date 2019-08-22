@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import javax.persistence.Id;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -16,30 +17,30 @@ public class Laboratorio implements Serializable {
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.AUTO)
-	private long id;
+	private Long id;
 	//endereço = rua, numero, bairro, cidade, uf, cep
-	
+	@NotNull
 	private String nome;
-	
+	@NotNull
 	private String rua;
-	
+	@NotNull
 	private Integer numero = null;
-	
+	@NotNull
 	private String bairro;
-	
+	@NotNull
 	private String cidade;
-	
+	@NotNull
 	private String uf;
-	
+	@NotNull
 	private String cep;
 	
 	private Boolean status = null;
 
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
