@@ -23,7 +23,7 @@ public class Laboratorio implements Serializable {
 	
 	private String rua;
 	
-	private int numero;
+	private Integer numero = null;
 	
 	private String bairro;
 	
@@ -59,11 +59,11 @@ public class Laboratorio implements Serializable {
 		this.rua = rua;
 	}
 
-	public int getNumero() {
+	public Integer getNumero() {
 		return numero;
 	}
 
-	public void setNumero(int numero) {
+	public void setNumero(Integer numero) {
 		this.numero = numero;
 	}
 
@@ -99,11 +99,11 @@ public class Laboratorio implements Serializable {
 		this.cep = cep;
 	}
 
-	public boolean getStatus() {
+	public Boolean getStatus() {
 		return status;
 	}
 
-	public void setStatus(boolean status) {
+	public void setStatus(Boolean status) {
 		this.status = status;
 	}
 	
