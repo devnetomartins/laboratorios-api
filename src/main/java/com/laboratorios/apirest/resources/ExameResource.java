@@ -14,6 +14,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -83,7 +84,7 @@ public class ExameResource {
 	
 	@PostMapping("/exames")
 	public HashMap<String, String> createExame(@RequestBody Exame exame) {
-		
+		//Validar o tipo do exame
 		HashMap<String, String> map = new HashMap<>();
 		
 		boolean state = Stream.of(exame.getNome(), exame.getTipo())
@@ -164,6 +165,122 @@ public class ExameResource {
 		}
 		
 		return new ResponseEntity<>(map,status);
+	}
+	
+	@PostMapping("/exames/associacao")
+	public ResponseEntity associaExame(@RequestBody @Valid Associacao associacao) {
+		
+		HashMap<String, String> map = new HashMap<>();
+		
+		HttpStatus status = HttpStatus.CREATED;
+		
+		boolean state = Stream.of(associacao.getIdExame(), associacao.getIdLaboratorio())
+        .anyMatch(Objects::isNull);
+		
+		if(!state) {
+			
+			Optional<Exame> exame = exameRepository.findById(associacao.getIdExame());
+			
+			Optional<Laboratorio> lab = laboratorioRepository.findById(associacao.getIdLaboratorio());
+			
+			if(exame.isPresent()) {
+				
+				if(lab.isPresent()) {
+					//Valido para saber se ambos estao ativos
+					if(exame.get().getStatus() && lab.get().getStatus()) {
+						//Valido se ja existe
+						ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id");
+						
+						Example<Associacao> example = Example.of(associacao, modelFind);
+						boolean exists = associacaoRepository.exists(example);
+						
+						if(!exists) {
+							associacaoRepository.save(associacao);
+							map.put("message", "Cadastrado com sucesso");
+						}else {
+							map.put("message", "Associacao ja cadastrada");
+							status = HttpStatus.NOT_FOUND;
+						}
+					}else {
+						map.put("message", "Exame ou Laboratorio desativado");
+						status = HttpStatus.NOT_FOUND;
+					}
+					
+				}else {
+					map.put("message", "ID do laboratorio não encontrado");
+					status = HttpStatus.NOT_FOUND;
+				}
+				
+			}else {
+				map.put("message", "ID do exame não encontrado");
+				status = HttpStatus.NOT_FOUND;
+			}
+			
+		}else {
+			map.put("message", "Parametros em falta");
+		}
+		System.out.println(map.get("message"));
+		return new ResponseEntity<>(map,status);
+		
+	}
+	
+	@DeleteMapping("/exames/associacao")
+	public ResponseEntity desassociaExame(@RequestBody @Valid Associacao associacao) {
+		
+		HashMap<String, String> map = new HashMap<>();
+		
+		HttpStatus status = HttpStatus.CREATED;
+		
+		boolean state = Stream.of(associacao.getIdExame(), associacao.getIdLaboratorio())
+        .anyMatch(Objects::isNull);
+		
+		if(!state) {
+			
+			Optional<Exame> exame = exameRepository.findById(associacao.getIdExame());
+			
+			Optional<Laboratorio> lab = laboratorioRepository.findById(associacao.getIdLaboratorio());
+			
+			if(exame.isPresent()) {
+				
+				if(lab.isPresent()) {
+					//Valido para saber se ambos estao ativos
+					if(exame.get().getStatus() && lab.get().getStatus()) {
+						//Valido se ja existe
+						ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id");
+						
+						Example<Associacao> example = Example.of(associacao, modelFind);
+						Optional<Associacao> obj = associacaoRepository.findOne(example);
+						
+						if(obj.isPresent()) {
+							associacaoRepository.delete(obj.get());
+							map.put("message", "Deletado com sucesso");
+							status = HttpStatus.OK;
+						}else {
+							map.put("message", "Associacao nao encontrada");
+							status = HttpStatus.NOT_FOUND;
+						}
+						
+					}else {
+						map.put("message", "Exame ou Laboratorio desativado");
+						status = HttpStatus.NOT_FOUND;
+					}
+					
+				}else {
+					map.put("message", "ID do laboratorio não encontrado");
+					status = HttpStatus.NOT_FOUND;
+				}
+				
+			}else {
+				map.put("message", "ID do exame não encontrado");
+				status = HttpStatus.NOT_FOUND;
+			}
+			
+		}else {
+			map.put("message", "Parametros em falta");
+		}
+		System.out.println(map.get("message"));
+		return new ResponseEntity<>(map,status);
+		
 	}
 
 }
