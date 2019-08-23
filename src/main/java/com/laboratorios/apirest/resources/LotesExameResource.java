@@ -15,6 +15,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -281,6 +282,113 @@ public class LotesExameResource {
 	    return new ResponseEntity<>(jsonString,status);
 	}
 	
-	
+	@DeleteMapping("/exames/lotes")
+	public ResponseEntity deleteExamesList(@RequestBody String json) {
+		
+		HashMap<String, String> map = new HashMap<>();
+		HashMap<String, List> lista = new HashMap<>();
+		
+		Gson resp = new Gson();
+		
+		String jsonString = "";
+		
+		Gson gson = new Gson();
+		
+	    Type type = new TypeToken<List<Exame>>(){}.getType();
+	    boolean state = false, exists = false;
+	    
+	    status = HttpStatus.BAD_REQUEST;
+	    
+	    try {
+	    	
+	    	List<Exame> exameList = gson.fromJson(json, type);
+	    	
+	    	ArrayList<HashMap> list = new ArrayList<>();
+	    	
+			for (Exame ex : exameList) {
+				
+		    	if(Stream.of(ex.getId()).anyMatch(Objects::isNull)) {
+		    		state = true;
+		    		break;
+		    		
+		    	}
+		    	
+			}
+			
+			if(state) {
+		    	map.put("message", "Parametros inválidos");
+		    	jsonString = resp.toJson(map);
+		    	status = HttpStatus.BAD_REQUEST;
+		    	return new ResponseEntity<>(jsonString,status);
+		    }
+			
+			Optional<Exame> ex;
+		
+			ArrayList<Integer> listIndex = new ArrayList<>();
+			//Valido um por um
+			int cont = 0;
+			for(Exame exame : exameList) {
+				
+				 ex = exameRepository.findById(exame.getId());
+				//Testo se retornou
+				 if(ex.isPresent()){
+					 
+					 ex.get().setStatus(false);
+					 exameRepository.save(ex.get());
+					 listIndex.add(cont);
+					
+				}
+				 cont+= 1;
+			}
+			
+			/*Vejo se falhou algum devido a nao existir o id
+		      Limpo lista de laboratorios*/
+		    if(!listIndex.isEmpty()) {
+		    	int value;
+		    	
+		    	if(listIndex.size() == exameList.size()) {
+		    		exameList.clear();
+		    	}else {
+		    		//Limpo para retornar os que falharam
+			    	for(Integer y : listIndex) {
+			    		value = y;
+			    		exameList.remove(value);
+			    	}
+		    	}
+
+		    	if(exameList.isEmpty()) {
+		    		//Deu certo
+		    		status = HttpStatus.OK;
+					map.put("message", "Deletado com sucesso");
+			    	jsonString = resp.toJson(map);
+		    	}else {
+		    		//retorna o que nao deu certo
+		    		lista.put("exames", exameList);
+		    		map.put("message", "Segue a lista de exames nao deletados");
+		    		list.add(map);
+			    	list.add(lista);
+			    	jsonString = resp.toJson(list);
+			    	status = HttpStatus.BAD_REQUEST;
+		    		
+		    	}
+		    }else {
+		    	//Nao cadastrou nada retorna lista de laboratorios completa
+		    	lista.put("exames", exameList);
+	    		map.put("message", "Segue a lista de exames nao deletados");
+	    		list.add(map);
+		    	list.add(lista);
+		    	jsonString = resp.toJson(list);
+		    	status = HttpStatus.BAD_REQUEST;
+		    }
+	    	
+	    }catch (JsonParseException e) {
+	    	//Json nao esta no formato solicitado
+	    	map.put("message", "Request nao esta no formato correto");
+	    	status = HttpStatus.BAD_REQUEST;
+	    	jsonString = resp.toJson(map);
+	    }
+	    
+	    return new ResponseEntity<>(jsonString,status);
+	}
 
 }
