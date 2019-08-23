@@ -217,13 +217,13 @@ public class LotesLabResource {
 						if(result.get().getId() == laboratorio.getId()) {
 							laboratorioRepository.save(laboratorio);
 							listIndex.add(cont);
-							System.out.println(listIndex.get(0));
+							
 						}
 						
 					}else {
 						//Se conseguiu
 						laboratorioRepository.save(laboratorio);
-						listIndex.add(laboratorioList.indexOf(lab));
+						listIndex.add(cont);
 					}
 				}
 				 cont+= 1;
