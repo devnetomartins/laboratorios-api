@@ -14,6 +14,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -176,9 +177,9 @@ public class LotesLabResource {
 		    				anyMatch(s -> (s == null || ((String) s).trim().equals("")));
 		    		state2 = Stream.of(lab.getNumero(), lab.getStatus(),
 		    				lab.getId()).anyMatch(Objects::isNull);
-		    		System.out.println("Endereco"+state+ "Status" + state2);
+		    		
 			    	if(state || state2) {
-			    		System.out.println("Entrou");
+			    		
 			    		break;
 			    	}
 		    	}else {
@@ -232,7 +233,7 @@ public class LotesLabResource {
 		      Limpo lista de laboratorios*/
 		    if(!listIndex.isEmpty()) {
 		    	int value;
-		    	System.out.println("Tamanho index " + listIndex.size() + " Tamanho laboratorio "+ laboratorioList.size());
+		    	
 		    	if(listIndex.size() == laboratorioList.size()) {
 		    		laboratorioList.clear();
 		    	}else {
@@ -262,6 +263,117 @@ public class LotesLabResource {
 		    	//Nao cadastrou nada retorna lista de laboratorios completa
 		    	lista.put("labs", laboratorioList);
 	    		map.put("message", "Segue a lista de laboratorios nao atualizados");
+	    		list.add(map);
+		    	list.add(lista);
+		    	jsonString = resp.toJson(list);
+		    	status = HttpStatus.BAD_REQUEST;
+		    }
+	    	
+	    }catch (JsonParseException e) {
+	    	//Json nao esta no formato solicitado
+	    	map.put("message", "Request nao esta no formato correto");
+	    	status = HttpStatus.BAD_REQUEST;
+	    	jsonString = resp.toJson(map);
+	    }
+	    
+	    return new ResponseEntity<>(jsonString,status);
+	}
+	
+	@DeleteMapping("/laboratorios/lotes")
+	public ResponseEntity deleteLaboratorioList(@RequestBody String json) {
+		
+		HashMap<String, String> map = new HashMap<>();
+		HashMap<String, List> lista = new HashMap<>();
+		
+		Gson resp = new Gson();
+		
+		String jsonString = "";
+		
+		Gson gson = new Gson();
+		
+	    Type type = new TypeToken<List<Laboratorio>>(){}.getType();
+	    boolean state = false, exists = false;
+	    
+	    status = HttpStatus.BAD_REQUEST;
+	    
+	    try {
+	    	
+	    	List<Laboratorio> laboratorioList = gson.fromJson(json, type);
+	    	
+	    	ArrayList<HashMap> list = new ArrayList<>();
+	    	
+			for (Laboratorio lab : laboratorioList) {
+				
+		    	if(Stream.of(lab.getId()).anyMatch(Objects::isNull)) {
+		    		state = true;
+		    		break;
+		    		
+		    	}
+		    	
+			}
+			
+			if(state) {
+		    	map.put("message", "Parametros inválidos");
+		    	jsonString = resp.toJson(map);
+		    	status = HttpStatus.BAD_REQUEST;
+		    	return new ResponseEntity<>(jsonString,status);
+		    }
+			
+			Optional<Laboratorio> lab;
+			ExampleMatcher modelMatcher = ExampleMatcher.matching().withIgnorePaths("id");
+			Example<Laboratorio> example;
+			Optional<Laboratorio> result;
+			ArrayList<Integer> listIndex = new ArrayList<>();
+			//Valido um por um
+			int cont = 0;
+			for(Laboratorio laboratorio : laboratorioList) {
+				
+				 lab = laboratorioRepository.findById(laboratorio.getId());
+				//Testo se retornou
+				 if(lab.isPresent()){
+					 
+					 lab.get().setStatus(false);
+					 laboratorioRepository.save(lab.get());
+					 listIndex.add(cont);
+					
+				}
+				 cont+= 1;
+			}
+			
+			/*Vejo se falhou algum devido a nao existir o id
+		      Limpo lista de laboratorios*/
+		    if(!listIndex.isEmpty()) {
+		    	int value;
+		    	
+		    	if(listIndex.size() == laboratorioList.size()) {
+		    		laboratorioList.clear();
+		    	}else {
+		    		//Limpo para retornar os que falharam
+			    	for(Integer y : listIndex) {
+			    		value = y;
+			    		laboratorioList.remove(value);
+			    	}
+		    	}
+
+		    	if(laboratorioList.isEmpty()) {
+		    		//Deu certo
+		    		status = HttpStatus.OK;
+					map.put("message", "Deletado com sucesso");
+			    	jsonString = resp.toJson(map);
+		    	}else {
+		    		//retorna o que nao deu certo
+		    		lista.put("labs", laboratorioList);
+		    		map.put("message", "Segue a lista de laboratorios nao deletados");
+		    		list.add(map);
+			    	list.add(lista);
+			    	jsonString = resp.toJson(list);
+			    	status = HttpStatus.BAD_REQUEST;
+		    		
+		    	}
+		    }else {
+		    	//Nao cadastrou nada retorna lista de laboratorios completa
+		    	lista.put("labs", laboratorioList);
+	    		map.put("message", "Segue a lista de laboratorios nao deletados");
 	    		list.add(map);
 		    	list.add(lista);
 		    	jsonString = resp.toJson(list);
