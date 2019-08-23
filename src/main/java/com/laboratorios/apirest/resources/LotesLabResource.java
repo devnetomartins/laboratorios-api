@@ -83,7 +83,7 @@ public class LotesLabResource {
 		    
 		    ArrayList<Integer> listIndex = new ArrayList<>();
 		    
-		    ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id");
+		    ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id", "status");
 		    int cont = 0;
 		    for (Laboratorio lab : laboratorioList) {
 		    	Example<Laboratorio> example = Example.of(lab, modelFind);
@@ -195,7 +195,7 @@ public class LotesLabResource {
 		    	return new ResponseEntity<>(jsonString,status);
 		    }
 			Optional<Laboratorio> lab;
-			ExampleMatcher modelMatcher = ExampleMatcher.matching().withIgnorePaths("id");
+			ExampleMatcher modelMatcher = ExampleMatcher.matching().withIgnorePaths("id", "status");
 			Example<Laboratorio> example;
 			Optional<Laboratorio> result;
 			ArrayList<Integer> listIndex = new ArrayList<>();
@@ -320,9 +320,7 @@ public class LotesLabResource {
 		    }
 			
 			Optional<Laboratorio> lab;
-			ExampleMatcher modelMatcher = ExampleMatcher.matching().withIgnorePaths("id");
-			Example<Laboratorio> example;
-			Optional<Laboratorio> result;
+			
 			ArrayList<Integer> listIndex = new ArrayList<>();
 			//Valido um por um
 			int cont = 0;

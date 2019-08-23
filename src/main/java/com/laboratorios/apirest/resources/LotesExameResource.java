@@ -89,7 +89,7 @@ public class LotesExameResource {
 		    
 		    ArrayList<Integer> listIndex = new ArrayList<>();
 		    
-		    ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id");
+		    ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id","status");
 		    int cont = 0;
 		    for (Exame exame : exameList) {
 		    	Example<Exame> example = Example.of(exame, modelFind);
@@ -198,7 +198,7 @@ public class LotesExameResource {
 	    	
 	    	
 			Optional<Exame> ex;
-			ExampleMatcher modelMatcher = ExampleMatcher.matching().withIgnorePaths("id");
+			ExampleMatcher modelMatcher = ExampleMatcher.matching().withIgnorePaths("id","status");
 			Example<Exame> example;
 			Optional<Exame> result;
 			ArrayList<Integer> listIndex = new ArrayList<>();

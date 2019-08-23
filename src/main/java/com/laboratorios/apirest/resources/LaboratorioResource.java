@@ -59,7 +59,7 @@ public class LaboratorioResource {
 		
 		
 		if(!state) {
-			ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id");
+			ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id", "status");
 			
 			Example<Laboratorio> example = Example.of(laboratorio, modelFind);
 			boolean exists = laboratorioRepository.exists(example);
@@ -104,7 +104,7 @@ public class LaboratorioResource {
 			//Consulta se o ID existe
 
 			if(lab.isPresent()){
-				ExampleMatcher modelMatcher = ExampleMatcher.matching().withIgnorePaths("id");
+				ExampleMatcher modelMatcher = ExampleMatcher.matching().withIgnorePaths("id", "status");
 				Example<Laboratorio> example = Example.of(laboratorio, modelMatcher);
 				
 				Optional<Laboratorio> result = laboratorioRepository.findOne(example);

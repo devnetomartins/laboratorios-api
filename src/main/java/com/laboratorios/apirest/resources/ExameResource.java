@@ -108,7 +108,7 @@ public class ExameResource {
 			
 			exame.setStatus(true);
 			
-			ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id");
+			ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id", "status");
 			
 			Example<Exame> example = Example.of(exame, modelFind);
 			boolean exists = exameRepository.exists(example);
@@ -189,7 +189,7 @@ public class ExameResource {
 			//Consulta se o ID existe
 			System.out.println(lab.isPresent());
 			if(lab.isPresent()){
-				ExampleMatcher modelMatcher = ExampleMatcher.matching().withIgnorePaths("id");
+				ExampleMatcher modelMatcher = ExampleMatcher.matching().withIgnorePaths("id", "status");
 				Example<Exame> example = Example.of(exame, modelMatcher);
 				
 				Optional<Exame> result = exameRepository.findOne(example);
