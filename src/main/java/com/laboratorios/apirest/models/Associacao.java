@@ -18,15 +18,15 @@ public class Associacao implements Serializable {
 	@GeneratedValue(strategy=GenerationType.AUTO)
 	private long id;
 	@NotNull
-	private long idExame;
+	private Long idExame;
 	@NotNull
-	private long idLaboratorio;
+	private Long idLaboratorio;
 
 	public long getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 
@@ -34,7 +34,7 @@ public class Associacao implements Serializable {
 		return idExame;
 	}
 
-	public void setIdExame(long idExame) {
+	public void setIdExame(Long idExame) {
 		this.idExame = idExame;
 	}
 
@@ -42,7 +42,7 @@ public class Associacao implements Serializable {
 		return idLaboratorio;
 	}
 
-	public void setIdLaboratorio(long idLaboratorio) {
+	public void setIdLaboratorio(Long idLaboratorio) {
 		this.idLaboratorio = idLaboratorio;
 	}
 	

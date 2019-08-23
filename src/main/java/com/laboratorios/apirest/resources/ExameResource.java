@@ -1,6 +1,7 @@
 package com.laboratorios.apirest.resources;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -44,6 +45,7 @@ public class ExameResource {
 	AssociacaoRepository associacaoRepository;
 	@Autowired
 	LaboratorioRepository laboratorioRepository;
+	private HttpStatus status;
 	
 	@GetMapping("/exames")
 	public List<Exame> listaExames(){
@@ -53,10 +55,13 @@ public class ExameResource {
 	
 	//Retorna exame pelo nome
 	@GetMapping("/exames/{nome}")
-	public HashMap<String, ArrayList> listaExameUnico(@PathVariable(value="nome") String nome){
+	public ResponseEntity listaExameUnico(@PathVariable(value="nome") String nome){
 		
 		//Retorno todos os exames que estao ativos
 		Exame exame = exameRepository.findByNome(nome);
+		
+		HashMap<String, ArrayList> map = new HashMap<>();
+		HashMap<String, String> map2 = new HashMap<>();
 		
 		if(exame != null) {
 			
@@ -70,27 +75,37 @@ public class ExameResource {
 				Optional<Laboratorio> lab = laboratorioRepository.findById(lista.get(y).getIdLaboratorio());
 				lista_labs.add(lab);
 			}
-			HashMap<String, ArrayList> map = new HashMap<>();
-		    map.put("labs", lista_labs);
-		    return map;
 			
+		    map.put("labs", lista_labs);
+		    status = HttpStatus.OK;
+		    return new ResponseEntity<>(map,status);
 		}else {
-			return null;
+			//return null;
+			map2.put("message", "Nome nao encontrado");
+			status = HttpStatus.BAD_REQUEST;
+			return new ResponseEntity<>(map2,status);
 		}
-		
-		
 		
 	}
 	
 	@PostMapping("/exames")
-	public HashMap<String, String> createExame(@RequestBody Exame exame) {
+	public ResponseEntity createExame(@RequestBody @Valid Exame exame) {
 		//Validar o tipo do exame
 		HashMap<String, String> map = new HashMap<>();
 		
+		ArrayList<String> tipos = new ArrayList<>(Arrays.asList("analise clinica", "imagem"));
+		
 		boolean state = Stream.of(exame.getNome(), exame.getTipo())
-        .anyMatch(Objects::isNull);
+        .anyMatch(s -> (s == null || ((String) s).trim().equals("")));
 		
 		if(!state) {
+			
+			if(!tipos.contains(exame.getTipo())) {
+				status = HttpStatus.BAD_REQUEST;
+				map.put("message", "Tipo de exame invalido");
+				return new ResponseEntity<>(map,status);
+			}
+			
 			exame.setStatus(true);
 			
 			ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id");
@@ -98,26 +113,27 @@ public class ExameResource {
 			Example<Exame> example = Example.of(exame, modelFind);
 			boolean exists = exameRepository.exists(example);
 			
-			//.withMatcher("model", ignoreCase());
-			
 			if(!exists) {
-				exame.setStatus(true);
+				
 				exameRepository.save(exame);
+				status = HttpStatus.CREATED;
 				map.put("message", "Cadastrado com sucesso!");
 			}else {
-				
-				map.put("message", "Dados ja cadastrados!");
+				status = HttpStatus.BAD_REQUEST;
+				map.put("message", "Dados ja cadastrados");
 			}
 			
 		}else {
-			map.put("message", "Parametros em falta");
+			status = HttpStatus.BAD_REQUEST;
+			map.put("message", "Conteudo dos atributos invalidos");
+			
 		}
-		return map;
+		return new ResponseEntity<>(map,status);
 		
 	}
 	
 	@DeleteMapping("/exames")
-	public HashMap<String, String> deleteExame(@RequestBody Exame exame) {
+	public ResponseEntity deleteExame(@RequestBody Exame exame) {
 		
 		HashMap<String, String> map = new HashMap<>();
 		
@@ -131,17 +147,20 @@ public class ExameResource {
 				exame = value.get();
 				exame.setStatus(false);
 				exameRepository.save(exame);
+				status = HttpStatus.OK;
 				map.put("message", "Desativado com sucesso");
 			}else {
-				map.put("message", "ID não encontrado");
+				status = HttpStatus.BAD_REQUEST;
+				map.put("message", "ID nao encontrado");
 			}
 			
 		}else {
 			//Nao atualiza
+			status = HttpStatus.BAD_REQUEST;
 		    map.put("message", "É preciso informar o id para desativar o exame");
 		}
 		
-		return map;
+		return new ResponseEntity<>(map,status);
 		
 	}
 	
@@ -150,10 +169,21 @@ public class ExameResource {
 		
 		HashMap<String, String> map = new HashMap<>();
 		
-		boolean state = Stream.of(exame.getId(), exame.getNome(), exame.getTipo(), exame.getStatus())
-		        .anyMatch(Objects::isNull);
-		HttpStatus status = HttpStatus.OK;
-		if(!state) {
+		ArrayList<String> tipos = new ArrayList<>(Arrays.asList("analise clinica", "imagem"));
+		boolean state, state2;
+		
+		state = Stream.of(exame.getNome(), exame.getTipo())
+        .anyMatch(s -> (s == null || ((String) s).trim().equals("")));
+		
+		state2 = Stream.of(exame.getId(), exame.getStatus()).anyMatch(Objects::isNull);
+		
+		if(!state && !state2) {
+			
+			if(!tipos.contains(exame.getTipo())) {
+				status = HttpStatus.BAD_REQUEST;
+				map.put("message", "Tipo de exame invalido");
+				return new ResponseEntity<>(map,status);
+			}
 			
 			Optional<Exame> lab = exameRepository.findById(exame.getId());
 			//Consulta se o ID existe
@@ -171,20 +201,22 @@ public class ExameResource {
 					if(result.get().getId() == exame.getId()) {
 						System.out.println(exame.getStatus());
 						exameRepository.save(exame);
+						status = HttpStatus.OK;
 						map.put("message", "Atualizado com sucesso");
 					
 					}else {
 						map.put("message", "Conteudo ja existente");
-						status = HttpStatus.NOT_MODIFIED;
+						status = HttpStatus.BAD_REQUEST;
 					}
 				}else {
 					exameRepository.save(exame);
 					map.put("message", "Atualizado com sucesso");
+					status = HttpStatus.OK;
 				}
 				
 			}else {
-				map.put("message", "ID não encontrado");
-				status = HttpStatus.NOT_FOUND;
+				map.put("message", "ID nao encontrado");
+				status = HttpStatus.BAD_REQUEST;
 			}
 			
 		}else {
@@ -194,122 +226,6 @@ public class ExameResource {
 		}
 		
 		return new ResponseEntity<>(map,status);
-	}
-	
-	@PostMapping("/exames/associacao")
-	public ResponseEntity associaExame(@RequestBody @Valid Associacao associacao) {
-		
-		HashMap<String, String> map = new HashMap<>();
-		
-		HttpStatus status = HttpStatus.CREATED;
-		
-		boolean state = Stream.of(associacao.getIdExame(), associacao.getIdLaboratorio())
-        .anyMatch(Objects::isNull);
-		
-		if(!state) {
-			
-			Optional<Exame> exame = exameRepository.findById(associacao.getIdExame());
-			
-			Optional<Laboratorio> lab = laboratorioRepository.findById(associacao.getIdLaboratorio());
-			
-			if(exame.isPresent()) {
-				
-				if(lab.isPresent()) {
-					//Valido para saber se ambos estao ativos
-					if(exame.get().getStatus() && lab.get().getStatus()) {
-						//Valido se ja existe
-						ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id");
-						
-						Example<Associacao> example = Example.of(associacao, modelFind);
-						boolean exists = associacaoRepository.exists(example);
-						
-						if(!exists) {
-							associacaoRepository.save(associacao);
-							map.put("message", "Cadastrado com sucesso");
-						}else {
-							map.put("message", "Associacao ja cadastrada");
-							status = HttpStatus.NOT_FOUND;
-						}
-					}else {
-						map.put("message", "Exame ou Laboratorio desativado");
-						status = HttpStatus.NOT_FOUND;
-					}
-					
-				}else {
-					map.put("message", "ID do laboratorio não encontrado");
-					status = HttpStatus.NOT_FOUND;
-				}
-				
-			}else {
-				map.put("message", "ID do exame não encontrado");
-				status = HttpStatus.NOT_FOUND;
-			}
-			
-		}else {
-			map.put("message", "Parametros em falta");
-		}
-		System.out.println(map.get("message"));
-		return new ResponseEntity<>(map,status);
-		
-	}
-	
-	@DeleteMapping("/exames/associacao")
-	public ResponseEntity desassociaExame(@RequestBody @Valid Associacao associacao) {
-		
-		HashMap<String, String> map = new HashMap<>();
-		
-		HttpStatus status = HttpStatus.CREATED;
-		
-		boolean state = Stream.of(associacao.getIdExame(), associacao.getIdLaboratorio())
-        .anyMatch(Objects::isNull);
-		
-		if(!state) {
-			
-			Optional<Exame> exame = exameRepository.findById(associacao.getIdExame());
-			
-			Optional<Laboratorio> lab = laboratorioRepository.findById(associacao.getIdLaboratorio());
-			
-			if(exame.isPresent()) {
-				
-				if(lab.isPresent()) {
-					//Valido para saber se ambos estao ativos
-					if(exame.get().getStatus() && lab.get().getStatus()) {
-						//Valido se ja existe
-						ExampleMatcher modelFind = ExampleMatcher.matching().withIgnorePaths("id");
-						
-						Example<Associacao> example = Example.of(associacao, modelFind);
-						Optional<Associacao> obj = associacaoRepository.findOne(example);
-						
-						if(obj.isPresent()) {
-							associacaoRepository.delete(obj.get());
-							map.put("message", "Deletado com sucesso");
-							status = HttpStatus.OK;
-						}else {
-							map.put("message", "Associacao nao encontrada");
-							status = HttpStatus.NOT_FOUND;
-						}
-						
-					}else {
-						map.put("message", "Exame ou Laboratorio desativado");
-						status = HttpStatus.NOT_FOUND;
-					}
-					
-				}else {
-					map.put("message", "ID do laboratorio não encontrado");
-					status = HttpStatus.NOT_FOUND;
-				}
-				
-			}else {
-				map.put("message", "ID do exame não encontrado");
-				status = HttpStatus.NOT_FOUND;
-			}
-			
-		}else {
-			map.put("message", "Parametros em falta");
-		}
-		System.out.println(map.get("message"));
-		return new ResponseEntity<>(map,status);
-		
 	}
 
 }
