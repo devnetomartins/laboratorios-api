@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.laboratorios.apirest.repository.ExameRepository;
 import com.laboratorios.apirest.repository.LaboratorioRepository;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
@@ -25,16 +26,15 @@ import com.laboratorios.apirest.models.Laboratorio;
 @RestController
 //Define a rota
 @RequestMapping(value="/api")
-public class LotesResource {
+public class LotesExameResource {
 	
 	@Autowired
-	LaboratorioRepository laboratorioRepository;
+	ExameRepository exameRepository;
 	
-	@PostMapping("/laboratorios/lotes")
-	public String createLaboratorioList(@RequestBody String json) {
+	@PostMapping("/exames/lotes")
+	public String createExamesList(@RequestBody String json) {
 		
 		HashMap<String, String> map = new HashMap<>();
-		
 		HashMap<String, List> lista = new HashMap<>();
 		
 		Gson resp = new Gson();
