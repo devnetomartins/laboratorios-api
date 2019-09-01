@@ -14,6 +14,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +24,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.laboratorios.apirest.repository.LaboratorioRepository;
+
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.laboratorios.apirest.models.Laboratorio;
@@ -30,6 +35,8 @@ import com.laboratorios.apirest.models.Laboratorio;
 @RestController
 //Define a rota
 @RequestMapping(value="/api")
+@Api(value="API REST LABORATORIOS")
+@CrossOrigin(origins="*")
 public class LaboratorioResource {
 	
 	@Autowired
@@ -38,12 +45,13 @@ public class LaboratorioResource {
 	private HttpStatus status;
 	
 	@GetMapping("/laboratorios")
+	@ApiOperation(value="Retorna a lista de laboratorios")
 	public List<Laboratorio> listaLaboratorios(){
 		//Retorno todos os laboratorios que estao ativos
 		return laboratorioRepository.findByStatus(true);
 	}
-	
 	@PostMapping("/laboratorios")
+	@ApiOperation(value="Salva um laboratorio", response= Laboratorio.class)
 	public ResponseEntity createLaboratorio(@RequestBody @Valid Laboratorio laboratorio) {
 		
 		HashMap<String, String> map = new HashMap<>();
@@ -84,6 +92,7 @@ public class LaboratorioResource {
 	}
 	
 	@PutMapping("/laboratorios")
+	@ApiOperation(value="Atualiza um laboratorio")
 	public ResponseEntity updateLaboratorio(@RequestBody Laboratorio laboratorio) {
 		
 		HashMap<String, String> map = new HashMap<>();
@@ -142,6 +151,7 @@ public class LaboratorioResource {
 	}
 	
 	@DeleteMapping("/laboratorios")
+	@ApiOperation(value="Deleta um laboratorio")
 	public ResponseEntity deleteLaboratorio(@RequestBody Laboratorio laboratorio) {
 	 
 		HashMap<String, String> map = new HashMap<>();
