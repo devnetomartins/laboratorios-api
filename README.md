@@ -3,7 +3,7 @@
 > Api para gerenciamento de laboratórios
 
 ## Passos para execução
->Certifique-se de ter o Maven instalado e adicionado ao PATH de seu sistema operacional, assim como o Git e o banco de dados postgress.
+>Certifique-se de ter o Maven instalado e adicionado ao PATH de seu sistema operacional, assim como o Git e o banco de dados postgres.
 
 ``` bash
 
